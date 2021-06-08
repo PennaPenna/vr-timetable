@@ -5,8 +5,10 @@
  */
 
  module.exports = {
+  pathPrefix: "/vr-timetable",
   flags: {
     DEV_SSR: false,
   },
   plugins: [],
 }
+  

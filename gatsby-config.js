@@ -4,7 +4,9 @@
  * See: https://www.gatsbyjs.com/docs/gatsby-config/
  */
 
-module.exports = {
-  /* Your site config here */
+ module.exports = {
+  flags: {
+    DEV_SSR: false,
+  },
   plugins: [],
 }

@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from "react"
 import "../App.css"
-import { makeStyles, useTheme } from "@material-ui/core/styles"
+import { MuiThemeProvider, createMuiTheme } from "@material-ui/core/styles"
+import Typography from "@material-ui/core/Typography"
+import "@fontsource/roboto"
+import { makeStyles } from "@material-ui/core/styles"
 import IconButton from "@material-ui/core/IconButton"
 import SearchIcon from "@material-ui/icons/Search"
 import AppBar from "@material-ui/core/AppBar"
 import Toolbar from "@material-ui/core/Toolbar"
-import { MuiThemeProvider, createMuiTheme } from "@material-ui/core/styles"
-import Typography from "@material-ui/core/Typography"
 import TableContainer from "@material-ui/core/TableContainer"
-import { Container, TextField, Paper, TableRow } from "@material-ui/core"
+import { Container, TextField, Paper } from "@material-ui/core"
 import Autocomplete from "@material-ui/lab/Autocomplete"
-import "@fontsource/roboto"
 import PropTypes from "prop-types"
 import Tabs from "@material-ui/core/Tabs"
 import Tab from "@material-ui/core/Tab"
@@ -21,29 +21,13 @@ export default function AsemanJunatiedot() {
   const [searchedStation, setSearchedStation] = useState("")
   var stationNameLong = ""
   var stationNameShort = ""
-  const [
-    stationNamesAndShortCodesAll,
-    setStationNamesAndShortCodesAll,
-  ] = useState([])
+  const [stationNamesAndShortCodesAll, setStationNamesAndShortCodesAll] = useState([])
   var minutes = 300 // 5 hours
-  var searchTypeArrival="ARRIVAL"
-  var searchTypeDeparture="DEPARTURE"
+  var searchTypeArrival = "ARRIVAL"
+  var searchTypeDeparture = "DEPARTURE"
 
-  function getTrains() {
-    const url =
-      "https://rata.digitraffic.fi/api/v1/live-trains/station/"+stationNameShort+"?minutes_before_departure="+ minutes+"&minutes_after_departure=0&minutes_before_arrival="+minutes+"&minutes_after_arrival=0&train_categories=Commuter,Long-distance"
-    fetch(url)
-      .then(response => response.json())
-      .then(responseJson => {
-        setTrains(responseJson)
-      })
-      .catch(error => {
-        alert("Haku ei onnistunut. Yritä myöhemmin uudelleen.", error)
-      })
-  }
-  console.log(trains)
-
-  function getStationShortcode() {
+  // FETCH STATIONS (SEARCHOPTIONS) 
+  useEffect(() => {
     const url = "https://rata.digitraffic.fi/api/v1/metadata/stations"
     fetch(url)
       .then(response => response.json())
@@ -53,16 +37,13 @@ export default function AsemanJunatiedot() {
       .catch(error => {
         alert("Haku ei onnistunut. Yritä myöhemmin uudelleen.", error)
       })
-  }
+  }, [])
 
-  var stationNamesAndShortCodes = stationNamesAndShortCodesAll.filter(function (
-    shorts
-  ) {
+  var stationNamesAndShortCodes = stationNamesAndShortCodesAll.filter(function (shorts) {
     return shorts.passengerTraffic === true
   })
 
-  var i,
-    j = ""
+  var i = ""
   for (i in stationNamesAndShortCodes) {
     if (stationNamesAndShortCodes[i].stationName === searchedStation) {
       stationNameShort = stationNamesAndShortCodes[i].stationShortCode
@@ -71,27 +52,32 @@ export default function AsemanJunatiedot() {
       stationNameLong = stationNamesAndShortCodes[i].stationName
     }
   }
-  console.log(stationNameShort + " " + stationNameLong + " " + searchedStation)
-
-  useEffect(() => {
-    getStationShortcode()
-  }, [])
+  // FETCH TRAINS FOR THE SELECTED STATION
+  function getTrains() {
+    const url = "https://rata.digitraffic.fi/api/v1/live-trains/station/"+stationNameShort+"?minutes_before_departure=0&minutes_after_departure=0&minutes_before_arrival="+minutes+"&minutes_after_arrival=0&train_categories=Commuter,Long-distance"
+    fetch(url)
+      .then(response => response.json())
+      .then(responseJson => {
+        setTrains(responseJson)
+      })
+      .catch(error => {
+        alert("Haku ei onnistunut. Yritä myöhemmin uudelleen.", error)
+      })
+  }
+  function getTrainsOnEnter(event) {
+    if (event.key === "Enter") {
+      getTrains()
+    }
+  }
 
   const classes = useStyles()
 
   // TABS
-
   function TabPanel(props) {
-    const { children, value, index, id, ...other } = props
+    const { children, value, index } = props
 
     return (
-      <div
-        role="tabpanel"
-        hidden={value !== index}
-        id={`full-width-tabpanel-${index}`}
-        aria-labelledby={`full-width-tab-${index}`}
-        {...other}
-      >
+      <div hidden={value !== index}>
         {value === index && <div>{children}</div>}
       </div>
     )
@@ -99,20 +85,9 @@ export default function AsemanJunatiedot() {
 
   TabPanel.propTypes = {
     children: PropTypes.node,
-    index: PropTypes.any.isRequired,
-    value: PropTypes.any.isRequired,
   }
-
-  function tabProps(index) {
-    return {
-      id: `${index}`,
-      "aria-controls": `full-width-tabpanel-${index}`,
-    }
-  }
-  
 
   const [value, setValue] = useState(0)
-
   const handleChange = (event, newValue) => {
     setValue(newValue)
   }
@@ -129,21 +104,24 @@ export default function AsemanJunatiedot() {
           <div style={{ display: "inline-flex", marginTop: 110 }}>
             <Autocomplete
               id="Search"
+              autoSelect
+              noOptionsText={"Asemia ei löytynyt."}
               options={stationNamesAndShortCodes}
               getOptionLabel={option => option.stationName}
               getOptionSelected={(option, value) =>
                 option.stationName === value.stationName
               }
-              //autoSelect
-              //blurOnSelect
-              style={{ width: 250, backgroundColor: "white" }}
+              style={{ width: 350, backgroundColor: "white" }}
               placeholder=""
               renderInput={params => (
                 <TextField
                   {...params}
                   label="Hae aseman nimellä"
                   variant="filled"
-                  onBlur={e => setSearchedStation(e.target.value)}
+                  //onChange={e => setSearchedStation(e.target.value)}
+                  onSelect={e => setSearchedStation(e.target.value)}
+                  onBlur={e => setSearchedStation(e.target.value)} 
+                  onKeyPress={getTrainsOnEnter}
                 />
               )}
             />
@@ -152,27 +130,40 @@ export default function AsemanJunatiedot() {
               color="inherit"
               float="right"
               display="inline-flex"
-              onClick={getTrains}
-            >
+              onClick={getTrains}>
               <SearchIcon fontSize="large" />
             </IconButton>
             <Typography variant="srOnly">Search</Typography>
           </div>
-          <TableContainer component={Paper} style={{ marginTop: 60 }}>
+          <TableContainer
+            component={Paper}
+            elevation={0}>
             <Tabs
-              value={0}
-              variant="fullWidth"
+              value={value}
+              variant="standard"
+              indicatorColor="secondary"
               onChange={handleChange}
-              aria-label="välilehdet"
-            >
-              <Tab label="Saapuvat" {...tabProps(0)} />
-              <Tab label="Lähtevät" {...tabProps(1)} />
+              aria-label="välilehdet">
+              <Tab label="Saapuvat" />
+              <Tab label="Lähtevät" />
             </Tabs>
             <TabPanel value={value} index={0}>
-              <SearchTrains trains={trains} stationNameShort={stationNameShort} stationNameLong={stationNameLong} stationNamesAndShortCodes={stationNamesAndShortCodes} searchType={searchTypeArrival}/>
+              <SearchTrains
+                trains={trains}
+                stationNameShort={stationNameShort}
+                stationNameLong={stationNameLong}
+                stationNamesAndShortCodes={stationNamesAndShortCodes}
+                searchType={searchTypeArrival}
+              />
             </TabPanel>
-            <TabPanel value={value} index={1} >
-              <SearchTrains trains={trains} stationNameShort={stationNameShort} stationNameLong={stationNameLong} stationNamesAndShortCodes={stationNamesAndShortCodes} searchType={searchTypeDeparture}/>
+            <TabPanel value={value} index={1}>
+              <SearchTrains
+                trains={trains}
+                stationNameShort={stationNameShort}
+                stationNameLong={stationNameLong}
+                stationNamesAndShortCodes={stationNamesAndShortCodes}
+                searchType={searchTypeDeparture}
+              />
             </TabPanel>
           </TableContainer>
         </Container>
@@ -188,18 +179,15 @@ const theme = createMuiTheme({
       contrastText: "white",
     },
     secondary: {
-      main: "#f8f8f8",
-      contrastText: "white",
+      main: "#ffffff",
     },
-    action: { hover: "#eeeeee", active: "#eeeeee" },
-    background: { default: "#eeeeee" },
   },
   typography: {
     fontFamily: font,
     fontWeight: 500,
     h6: {
       fontFamily: font,
-      fontSize: "1.1rem",
+      fontSize: "1.2rem",
       fontWeight: 600,
     },
   },
@@ -211,20 +199,50 @@ const useStyles = makeStyles(theme => ({
       fontFamily: font,
       fontWeight: 600,
     },
-    Tab: {
-      fontFamily: font,
-      fontSize: "1.1rem",
+    "& .MuiPaper-rounded": {
+      marginTop: 60,
+    },
+    "& .MuiTabs-flexContainer": {
+      borderBottom: "2px solid #eef0f0",
+    },
+    "& .MuiTab-root": {
+      color: "#56a319",
+      minWidth: 200,
+      opacity: 1,
+      backgroundColor: "#ffffff",
+      paddingTop: 8,
+      borderBottom: "2px #eef0f0 solid",
+      bottom: -2,
+    },
+    "& .MuiTab-wrapper": {
+      fontSize: "1rem",
       fontWeight: 600,
+      textTransform: "Capitalize",
+    },
+    "& .MuiTab-textColorInherit.Mui-selected": {
+      color: "#888888",
+      border: "2px #eef0f0 solid",
+      paddingTop: 6,
+      borderBottom: "2px #ffffff solid",
+      borderRadius: "8px 8px 0px 0px",
+    },
+    "& .MuiTableRow-root": {
+      "&:nth-of-type(odd)": {
+        backgroundColor: "#f5f5f5",
+      },
+    },
+    "& .MuiTableCell-root": {
+      borderBottom: 1.5,
+      fontSize: "1rem",
+    },
+    "& .MuiTableCell-head": {
+      backgroundColor: "#ffffff",
+      color: "#b3b3b3",
+      fontWeight: 600,
+      fontSize: "0.9rem",
+    },
+    "& .MuiSvgIcon-root": {
+      fill: "#000000",
     },
   },
-  /*
-  table: {
-    minWidth:650,
-    marginTop:10,
-  },
-  tabPanel: {
-    width:'100%',
-    minWidth:1000,
-    marginTop:10,
-  }*/
 }))

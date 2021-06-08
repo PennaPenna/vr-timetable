@@ -4,7 +4,6 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import { makeStyles, theme } from "@material-ui/core/styles"
 
 const SearchTrains=(props)=>  {
 
@@ -13,8 +12,6 @@ const SearchTrains=(props)=>  {
   const stationNamesAndShortCodes=props.stationNamesAndShortCodes
   var searchType = props.searchType
   var scheduledTimes = []
- 
-  console.log(searchType)
  
   var j,i = ""
   for (j in trains) {
@@ -28,9 +25,7 @@ const SearchTrains=(props)=>  {
           trainType: trains[j].trainType,
           trainNumber: trains[j].trainNumber,
           departureStation: trains[j].timeTableRows[0].stationShortCode,
-          destinationStation:
-            trains[j].timeTableRows[trains[j].timeTableRows.length - 1]
-.stationShortCode,
+          destinationStation: trains[j].timeTableRows[trains[j].timeTableRows.length - 1].stationShortCode,
           time: time,
         }
         scheduledTimes.push(scheduledTime)
@@ -40,7 +35,6 @@ const SearchTrains=(props)=>  {
       }
     }
   }
-  console.log(scheduledTimes)
 
   function getLongName(short) {
     var i = ""
@@ -51,16 +45,22 @@ const SearchTrains=(props)=>  {
     }
   }
 
-  const classes = useStyles()
+  var searchTypeFI = ""
+  if (searchType === "ARRIVAL") {
+      searchTypeFI = "Saapuu"
+  }
+  if (searchType === "DEPARTURE") {
+      searchTypeFI = "Lähtee"
+  }
 
   return (
-    <Table className={classes.table} aria-label="aikataulutaulukko">
+    <Table aria-label="aikataulutaulukko">
       <TableHead>
         <TableRow>
           <TableCell>Juna</TableCell>
           <TableCell align="right">L&auml;ht&ouml;asema</TableCell>
           <TableCell align="right">P&auml;&auml;teasema</TableCell>
-          <TableCell align="right">{searchType}</TableCell>
+          <TableCell align="right">{searchTypeFI}</TableCell>
         </TableRow>
       </TableHead>
       <TableBody>
@@ -88,22 +88,4 @@ const SearchTrains=(props)=>  {
     </Table>
   )
 }
-const font = "'Nunito', sans-serif"
-
-const useStyles = makeStyles(theme => ({
-  root: {
-    "& > *": {
-      fontFamily: font,
-    },
-    Tab: {
-      fontFamily: font,
-      fontSize: "1.1rem",
-      fontWeight: 600,
-    },
-  },
-  table: {
-    minWidth: 450,
-    marginTop: 10,
-  },
-}))
 export default SearchTrains

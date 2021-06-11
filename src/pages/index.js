@@ -17,6 +17,7 @@ import Tab from "@material-ui/core/Tab"
 import SearchTrains from "./SearchTrains"
 
 export default function AsemanJunatiedot() {
+
   const [trains, setTrains] = useState([])
   const [searchedStation, setSearchedStation] = useState("")
   var stationNameLong = ""
@@ -25,6 +26,7 @@ export default function AsemanJunatiedot() {
   var minutes = 300 // 5 hours
   var searchTypeArrival = "ARRIVAL"
   var searchTypeDeparture = "DEPARTURE"
+  const classes = useStyles()
 
   // FETCH STATIONS (SEARCHOPTIONS) 
   useEffect(() => {
@@ -38,7 +40,7 @@ export default function AsemanJunatiedot() {
         alert("Haku ei onnistunut. Yritä myöhemmin uudelleen.", error)
       })
   }, [])
-
+  
   var stationNamesAndShortCodes = stationNamesAndShortCodesAll.filter(function (shorts) {
     return shorts.passengerTraffic === true
   })
@@ -69,8 +71,6 @@ export default function AsemanJunatiedot() {
       getTrains()
     }
   }
-
-  const classes = useStyles()
 
   // TABS
   function TabPanel(props) {

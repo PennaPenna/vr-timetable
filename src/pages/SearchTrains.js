@@ -11,8 +11,16 @@ const SearchTrains=(props)=>  {
   var stationNameShort = props.stationNameShort
   const stationNamesAndShortCodes=props.stationNamesAndShortCodes
   var searchType = props.searchType
-  var scheduledTimes = []
- 
+  var scheduledTimes = [] 
+
+  var searchTypeFI = ""
+  if (searchType === "ARRIVAL") {
+      searchTypeFI = "Saapuu"
+  }
+  if (searchType === "DEPARTURE") {
+      searchTypeFI = "Lähtee"
+  }
+
   var j,i = ""
   for (j in trains) {
     for (i in trains[j].timeTableRows) {
@@ -45,12 +53,14 @@ const SearchTrains=(props)=>  {
     }
   }
 
-  var searchTypeFI = ""
-  if (searchType === "ARRIVAL") {
-      searchTypeFI = "Saapuu"
-  }
-  if (searchType === "DEPARTURE") {
-      searchTypeFI = "Lähtee"
+  function noTrainsAlert() { 
+    if (scheduledTimes.length === 0) {
+      return (
+      <TableRow>
+        <TableCell>Ei näytettäviä junia.</TableCell>
+      </TableRow>
+      )
+    }
   }
 
   return (
@@ -62,6 +72,7 @@ const SearchTrains=(props)=>  {
           <TableCell align="right">P&auml;&auml;teasema</TableCell>
           <TableCell align="right">{searchTypeFI}</TableCell>
         </TableRow>
+        {noTrainsAlert()}
       </TableHead>
       <TableBody>
         {scheduledTimes.map((scheduledTimes, idx) => (
